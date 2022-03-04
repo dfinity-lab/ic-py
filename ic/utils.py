@@ -34,6 +34,8 @@ def to_request_id(d):
         pass
     vec = []
     for k, v in d.items():
+        if isinstance(v, dict):
+            v = to_request_id(v)
         if isinstance(v, list):
             v = encode_list(v)
         if isinstance(v, int):

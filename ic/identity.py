@@ -75,7 +75,7 @@ class Identity:
         if self.session_key:
             print(colored(f"Using session key {self.session_key} to sign message", "blue"))
             sig = self.session_key.sign(msg)
-            return (self.delegation_sender_pubkey, sig)
+            return (bytes(self.delegation_sender_pubkey), sig)
         if self.key_type == 'ed25519':
             sig = self.sk.sign(msg)
             return (self._der_pubkey, sig)

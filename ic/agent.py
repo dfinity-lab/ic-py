@@ -6,6 +6,7 @@ from .identity import *
 from .constants import *
 from .utils import to_request_id
 from .certificate import lookup
+import hashlib
 
 
 def sign_request(req, iden):
@@ -17,16 +18,24 @@ def sign_request(req, iden):
         'sender_pubkey': sig[0],
         'sender_sig': sig[1]
     }
-
+    
     if iden.delegation != None:
+        print("Delegation representation independent hash",
+              iden.delegation["delegation"],
+              hashlib.sha256(to_request_id(iden.delegation["delegation"])).digest().hex())
         print(colored(f"Signing request with delegation", "blue"))
-        assert(envelop["sender_pubkey"] == iden.sender_pubkey)
         envelop.update({
             'sender_delegation': [iden.delegation],
         })
+        envelop["sender_delegation"][0]["signature"] = bytes(envelop["sender_delegation"][0]["signature"])
+        envelop["sender_delegation"][0]["delegation"]["pubkey"] = \
+            bytes(envelop["sender_delegation"][0]["delegation"]["pubkey"])
+        print(colored("Sender public key for delegation " + bytes(iden.delegation_sender_pubkey).hex(), "yellow"))
 
     print(colored(envelop, "yellow"))
-    return req_id, cbor2.dumps(envelop)
+    c = cbor2.dumps(envelop)
+    print("cbord encoded", c.hex())
+    return req_id, c
 
 # According to did, get the method returned param type
 def getType(method:str):

@@ -97,11 +97,15 @@ class Agent:
         if status != 'replied':
             return  status
         else:
-            if len(arg) == 1:
-                res = decode(result)
+            if result[:4] == b'DIDL':
+                if len(arg) == 1:
+                    res = decode(result)
+                else:
+                    res = decode(result, arg[1])
+                return res
             else:
-                res = decode(result, arg[1])
-            return res
+                # Some canisters don't use DIDL (e.g. they might encode using json instead)
+                return result
             
 
     def read_state_raw(self, canister_id, paths):
@@ -130,6 +134,7 @@ class Agent:
 
     def poll(self, canister_id, req_id, delay=1, timeout=10):
         status = None
+        cert = None
         for _ in wait(delay, timeout):
             status, cert = self.request_status_raw(canister_id, req_id)
             if status == 'replied' or status == 'done' or status  == 'rejected':
@@ -140,4 +145,5 @@ class Agent:
             res = lookup(path, cert)
             return status, res
         else:
+            print('Polling failed, error is: ',  cert)
             return status, _
